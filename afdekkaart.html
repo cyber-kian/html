@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studiehulp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f9f9f9;
+        }
+
+        #controls {
+            margin: 20px;
+        }
+
+        #viewer {
+            position: relative;
+            width: 80%;
+            height: 60vh;
+            border: 1px solid #ccc;
+            overflow: auto;
+            background-color: #fff;
+        }
+
+        .cover-card {
+            position: absolute;
+            width: 150px;
+            height: 100px;
+            background: #000; /* Volledig zwart */
+            border: 2px solid #333;
+            cursor: move;
+            resize: both; /* Hiermee kun je de grootte aanpassen */
+            overflow: auto;
+        }
+
+        button {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Studiehulp</h1>
+    <div id="controls">
+        <input type="file" id="file-upload" accept=".pdf,.doc,.docx" />
+        <button id="add-cover-card">Voeg afdekkaart toe</button>
+        <button id="fullscreen">Volledig scherm</button>
+    </div>
+    <div id="viewer">Upload een bestand om te bekijken</div>
+
+    <script>
+        const fileUpload = document.getElementById('file-upload');
+        const viewer = document.getElementById('viewer');
+        const addCoverCard = document.getElementById('add-cover-card');
+        const fullscreenButton = document.getElementById('fullscreen');
+
+        // Functie om bestanden weer te geven (vereenvoudigd voor demo)
+        fileUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    viewer.innerHTML = `<iframe src="${e.target.result}" style="border:none;"></iframe>`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Functie om een afdekkaart toe te voegen
+        addCoverCard.addEventListener('click', () => {
+            const card = document.createElement('div');
+            card.className = 'cover-card';
+            card.style.left = '10px';
+            card.style.top = '10px';
+            viewer.appendChild(card);
+
+            // Maak de kaart verplaatsbaar
+            let isDragging = false;
+            let offsetX, offsetY;
+            let isResizing = false;
+
+            card.addEventListener('mousedown', (e) => {
+                const rect = card.getBoundingClientRect();
+                // Controleer of de muis dicht bij de rechteronderhoek is (resize zone)
+                if (e.clientX > rect.right - 10 && e.clientY > rect.bottom - 10) {
+                    isResizing = true;
+                } else {
+                    isDragging = true;
+                    offsetX = e.offsetX;
+                    offsetY = e.offsetY;
+                }
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging && !isResizing) {
+                    card.style.left = `${e.pageX - viewer.offsetLeft - offsetX}px`;
+                    card.style.top = `${e.pageY - viewer.offsetTop - offsetY}px`;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+                isResizing = false;
+            });
+        });
+
+        // Functie om de viewer in volledig scherm te openen
+        fullscreenButton.addEventListener('click', () => {
+            if (viewer.requestFullscreen) {
+                viewer.requestFullscreen();
+            } else if (viewer.mozRequestFullScreen) {
+                viewer.mozRequestFullScreen(); // Firefox
+            } else if (viewer.webkitRequestFullscreen) {
+                viewer.webkitRequestFullscreen(); // Chrome, Safari, Opera
+            } else if (viewer.msRequestFullscreen) {
+                viewer.msRequestFullscreen(); // IE/Edge
+            }
+        });
+    </script>
+</body>
+</html>
